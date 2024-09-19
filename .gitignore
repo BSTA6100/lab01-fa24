@@ -1,0 +1,10 @@
+.DS_Store
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.html
+
+/bsta6100-lab01-fa24-tutorial_files/
+/bsta6100-lab01-fa24-report_files/
+/.quarto/

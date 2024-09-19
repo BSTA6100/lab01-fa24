@@ -1,0 +1,288 @@
+---
+title: "BSTA 6100 Lab 1 Tutorial"
+author: "Nicholas J. Seewald, Ph.D."
+format:
+  html:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    theme: lumen
+    css: assets/styles.css
+    self-contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Lab Tutorial
+
+We'll continue hanging out with our penguin friends.
+```{r penguins}
+penguins <- read.csv("penguins.csv", stringsAsFactors = TRUE)
+```
+
+## Subsetting
+
+Sometimes we want to only look at a certain section of our data. To do this, we'll create a *subset*.
+
+```{r chinstrapSubset}
+chinstrap <- subset(penguins, species == "Chinstrap")
+```
+
+The first argument of the `subset()` function is the data you want to create a subset of. The next argument is a "logical expression" telling R what you want to include in the subset. Here, we want to include only chinstrap penguins, so we say `species == "Chinstrap"`. It's *very* important that you type two equals signs here. Two equals signs `==` is the **logical EQUALS operator**, which is different from `=`, which is an **assignment** operator, like `<-`. 
+
+**What's with the double equals??** The double equals `==` is called "logical equals": it tells R that you're asking a TRUE/FALSE question, basically. So `species == "Chinstrap"` will be `TRUE` when an observation's `species` variable is equal to "`Chinstrap`" and `FALSE` otherwise.
+
+```{r headChinstrap}
+head(chinstrap)
+```
+
+**TRY IT!** Fill in the chunk below to create subsets for the other species of penguin.
+
+```{r speciesSubsets, error = T}
+adelie <- subset(penguins, species == "")
+gentoo <- subset(penguins, species == "")
+```
+
+### An alternative subset method
+
+We can also create a subset using square brackets:
+
+```{r bracketSubset}
+chinstrap2 <- penguins[penguins$species == "Chinstrap", ]
+```
+
+This code selects all the *rows* in `penguins` where `species` is "Chinstrap" and all the columns in the data. Remember that data is **R**eally **C**ool, so we always write **r**ows, **c**olumns. The comma after "Chinstrap" is really important: that's what separates our selection of the rows from the columns. By leaving the second part (after the comma) blank, we're telling R to select *all* the columns.
+
+```{r}
+head(chinstrap2)
+```
+
+We can also subset a single variable. Because one variable is one column, there's no need to tell R about columns at all, so we'll drop that comma. Let's subset `body_mass_g` by `sex`.
+
+```{r}
+table(penguins$sex)
+```
+
+The `sex` variable in this data is either `female` or `male` (note the lowercase names!).
+
+```{r bodyMassSubsets}
+male_body_mass <- penguins$body_mass_g[penguins$sex == "male"]
+female_body_mass <- penguins$body_mass_g[penguins$sex == "female"]
+```
+
+## Histograms Revisited
+
+With histograms, it's often helpful to change the number of bins to get a different view of the data. We can sort of control the number of bins using the `breaks` argument.
+
+```{r bodyMassHistBreaks}
+hist(penguins$body_mass_g,
+     main = "Histogram of Penguin Body Mass",
+     xlab = "Body Mass (g)",
+     breaks = 20)
+```
+
+So now we've got a lot more bins than in the original plot. There might not be exactly 20, though. R uses the `breaks` argument as a *suggestion* only -- it'll try to give you what you want, but (1) no promises and (2) it will prefer what it thinks is prettier. Your best strategy here is to play around with the number you give as `breaks` until you get a plot that looks "good". Here's what you're looking for:
+
+```{r histogramOptions, echo = FALSE, fig.height = 4, fig.width = 9, fig.align='center'}
+par(mfrow = c(1, 3))
+hist(penguins$body_mass_g,
+     main = "Histogram of Penguin Body Mass\n(Too few breaks)",
+     xlab = "Body Mass (g)",
+     breaks = 5)
+
+hist(penguins$body_mass_g,
+     main = "Histogram of Penguin Body Mass \n(This is the best one)",
+     xlab = "Body Mass (g)")
+
+hist(penguins$body_mass_g,
+     main = "Histogram of Penguin Body Mass\n(Too many breaks)",
+     xlab = "Body Mass (g)",
+     breaks = 20)
+
+par(mfrow = c(1, 1))
+```
+
+The middle plot (that uses the default number of breaks computed by R) is the best of these three. It gives you a good sense of the distribution of the values of body mass without being too fine or too coarse. This is something you'll get the hang of as you see and make more histograms over the semester!
+
+
+## Scatterplots in R
+
+A **scatterplot** is a way to visualize relationships between two numeric variables. One of them is called an *explanatory* variable (denoted $x$), and the other is called the *response* variable (denoted $y$). The data is paired *(x,y)*, then each pair is plotted using an open circle. In terms of our data set `penguins`, each penguin would be represented by an open circle.
+
+The `plot()` function, when given two numeric variables, will create a scatterplot. The first argument to `plot()` is on the x axis; the second, on the y axis.
+
+```{r scatterplotExample}
+plot(penguins$bill_length_mm, penguins$body_mass_g,
+     main = "Scatterplot of Penguin Bill Length versus Body Mass",
+     xlab = "Bill Length (mm)",
+     ylab = "Body Mass (g)")
+```
+
+We want to focus our attention on scatterplots that appear to show a **linear** association between two numeric variables. The scatterplot of bill length versus body mass of penguins has a positive, reasonably linear association. The linear association is of moderate strength. There seem to be no unusual points (i.e. no outliers).
+Mass (mm)")
+
+Notice that there might be some clustering happening. Let's color the plot by `species` to see if that might explain what we're seeing.
+
+```{r scatterplotColor}
+plot(penguins$flipper_length_mm, penguins$body_mass_g,
+     main = "Scatterplot of Body Mass vs. Flipper Length",
+     xlab = "Flipper Length (mm)",
+     ylab = "Body Mass (mm)",
+     col = c("red", "blue", "green")[penguins$species])
+```
+
+Notice the `col` argument uses square brackets `[]` -- this is for "selection". We're selecting a color (red, blue, or green) based on the value of `penguins$species`. We know which color goes with which species based on the order of the colors and the order of the levels of `species`:
+
+```{r speciesTable}
+table(penguins$species)
+```
+
+So Adelie penguins are red, chinstraps are blue, and gentoos are green. Let's add a legend for clarity.
+
+```{r scatterplotLegend}
+plot(penguins$flipper_length_mm, penguins$body_mass_g,
+     main = "Scatterplot of Body Mass vs. Flipper Length",
+     xlab = "Flipper Length (mm)",
+     ylab = "Body Mass (mm)",
+     col = c("red", "blue", "green")[penguins$species])
+
+legend("topleft",
+       legend = c("Adelie", "Chinstrap", "Gentoo"),
+       col = c("red", "blue", "green"),
+       pch = 1)
+```
+
+**NOTE:** The information in the legend is *not* tied to the plot by default. You can make a nonsense legend if you want (you don't want this). Make sure your legend matches your plot!
+
+Notice the `pch` argument in `legend`. `pch` stands for `p`lotting `ch`aracter: it's the symbol that R will use for the points on the plot. You just pass `pch` a number corresponding to the point you want. The default is `1`, an open circle.
+
+![](assets/images/pch.png)
+
+Let's change the `pch` argument so that each species has a different color *and* plotting character.
+
+```{r scatterplotLegendPCH}
+plot(penguins$flipper_length_mm, penguins$body_mass_g,
+     main = "Scatterplot of Body Mass vs. Flipper Length",
+     xlab = "Flipper Length (mm)",
+     ylab = "Body Mass (mm)",
+     col = c("red", "blue", "green")[penguins$species],
+     pch = c(0, 1, 2)[penguins$species])
+
+legend("topleft",
+       legend = c("Adelie", "Chinstrap", "Gentoo"),
+       col = c("red", "blue", "green"),
+       pch = c(0, 1, 2))
+```
+
+## Use Color Meaningfully and with Restraint
+
+The primary function of a graphical display is to *convey information*. Everything that goes on your plot needs to have a purpose and must convey information.
+
+**Use color only to convey information.**
+
+In the scatterplot above, we colored the points by penguin species. This is meaningful: it differentiates the points and conveys information by telling us that Gentoo penguins tend to have longer flipper lengths and are heavier than Adelie and Chinstrap penguins. Here's an example of using color in a way that does not convey information:
+
+```{r badColor}
+plot(penguins$flipper_length_mm, penguins$body_mass_g,
+     main = "Scatterplot of Body Mass vs. Flipper Length",
+     xlab = "Flipper Length (mm)",
+     ylab = "Body Mass (mm)",
+     col = c("red", "blue", "green"))
+```
+
+Notice that the `col` argument doesn't involve the `[penguins$species]` selector, so it's just coloring points red, blue, and green based on the order the observations are in the data. This is not meaningful. It might look fun, but it distracts from the information the graph is trying to convey. A viewer will ask what the color means, and you'll have to tell them, "Nothing! But doesn't it look cool??" and that's embarrassing.
+
+### Quick Tips for Color
+
+These are adapted from <https://nbisweden.github.io/Rcourse/files/rules_for_using_color.pdf>
+
+1.  Use color only when needed to serve a particular communication goal.
+
+2.  Use different colors only when they correspond to differences of meaning in the data.
+
+    a.  This means that something like a histogram should be **one color**.
+
+3.  To guarantee that most people who are colorblind can distinguish groups of data that are color coded, avoid using a combination of red and green in the same display.
+
+The document linked above has all sorts of great information on color. You should check it out: understanding just a little bit about color (and graphic design) will take you a long way in your professional life.
+
+## The ~ Operator
+
+In R, we can use `~` (tilde, found underneath the Esc key in the top left corner of a U.S. English keyboard) as an operator that can be read as "by" (or "versus"). This operator has use in making several plots we have discussed in the past.
+
+Let's make side-by-side boxplots of the numeric variable `body_mass_g` by `species`.
+```{r tildeExampleBoxplot}
+boxplot(penguins$body_mass_g ~ penguins$species,
+        main = "Side-by-Side Boxplots of Body Mass by Penguin Species",
+        xlab = "Species",
+        ylab = "Body Mass in Grams")
+```
+
+Let's go back to the scatterplot we made last week and update it to use the `~` operator. We will also update the code to reflect that we can now send to `plot` the name of the data set using the `data` argument, letting us skip the `$`.
+
+```{r lengthMassPlot}
+plot(body_mass_g ~ bill_length_mm,
+     data = penguins,
+     main = "Scatterplot of Penguin Body Mass versus Bill Length",
+     xlab = "Bill Length (mm)",
+     ylab = "Body Mass in (g)")
+```
+
+Notice the order here: the *y* variable (`body_mass_g`) is written first, then the tilde, then the *x* variable (`bill_length_mm`). This is because for scatterplots, the order is **y by x** or **y ~ x**. Be *very* careful setting up scatterplots! 
+
+### Strength & Correlation
+
+We can quantify the strength of a linear relationship between two random variables with the correlation coefficient, $\rho$. Let's do so using the function `cor()`:
+
+```{r lengthMassCor}
+cor(penguins$bill_length_mm, penguins$body_mass_g)
+```
+
+The correlation $\rho$ quantifies the strength of the linear relationship between the explanatory (*X*) and response (*Y*) variable. As $\abs{\rho}$ approaches 1, the linear relationship gets stronger.
+
+### Correlation Matrix
+
+If we wanted to consider the correlation between multiple numeric variables, we could use `cor()` on every pair of them, but that's tedious. Instead, we'll compute a correlation *matrix*. In order to achieve this, we will have to make sure that the data we send to `cor()` is all numeric variables. It cannot contain categorical variables.
+
+Recall that the `penguins` data has both numeric and categorical variables. So to print a correlation matrix, first we should subset the `penguins` data to only consider numeric variables. Those variables are `bill_length_mm`, `bill_depth_mm`, `flipper_length_mm`, and `body_mass_g` (`year` is numeric or categorical, depending on how you think of it, but I hope we agree that `year` is not particularly interesting as it is the year the data was collected). 
+
+To make this subset, we'll use the `subset()` function and the `select` argument. `select` is a vector of variable names in `penguins`. Then, we can find the correlation of this subset that we will call `numericPenguins`.
+
+```{r correlationMatrix}
+numericPenguins <- subset(penguins,
+                          select = c("bill_length_mm", "bill_depth_mm", 
+                                     "flipper_length_mm", "body_mass_g")
+                          )
+cor(numericPenguins)
+```
+
+Each "entry" in the correlation matrix is the correlation between the variables labeling that entry's row and column. So for example, the correlation between bill depth and bill length is about -0.229. 
+
+### Linear Regression
+
+Let's explore a simple linear regression of body mass on bill length. This means we're going to use the bill length as the explanatory variable / covariate / independent variable / predictor (x) and body mass as the response / outcome variable (y).
+
+We'll use the function `lm()` (for *l*inear *m*odel), and provide it a formula (`y ~ x`) and a `data` argument. We'll store that as an object called `reg1`. Then, to get detailed results, we'll use the `summary()` function.
+
+```{r lm1}
+reg1 <- lm(body_mass_g ~ bill_length_mm, data = penguins)
+summary(reg1)
+```
+
+As we read this table, the first two lines are just the code we typed in being displayed. The next piece dealing with *residuals* is just a five-number summary of our estimated errors. We want to focus on the piece of the output dealing with the **coefficients**. In the *coefficients* table of the output, there are two rows of information with four columns. In this lab, we'll just focus on the *Estimate* and *Std. Error* columns.
+
+The first row of the coefficients table is labeled **`(Intercept)`**, so this corresponds to information about $\hat{\beta}_0$. So if we go to the `Estimate` column in the `(Intercept)` row, we will get the estimated value the vertical (y) intercept for the least-squares regression line. Notice that the next row of information is called **`bill_length_mm`**, which is our explanatory (x) variable. This is a great way to verify that your logic of `y ~ x` was done correctly! This second row will always contain the name of the explanatory variable you chose. In the `Estimate` column of the `bill_length_mm` row, we will find the value of the slope for the least-squares regression line, $\hat{\beta}_1$.
+
+In the `Std. Error` column, we find estimates of the *standard errors* of $\hat{\beta}_0$ and $\hat{\beta}_1$. The *standard error* is the term used to refer to the standard deviation of an estimator.
+
+We can add the estimated regression line to our scatterplot by giving the model object to the `abline()` function.
+
+```{r lengthMass-Regression-Plot}
+plot(penguins$bill_length_mm, penguins$body_mass_g,
+     main = "Scatterplot of Penguin Body Mass versus Bill Length",
+     xlab = "Bill Length (mm)",
+     ylab = "Body Mass in (g)")
+abline(reg1)
+```
